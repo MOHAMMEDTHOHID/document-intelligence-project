@@ -146,7 +146,7 @@ def main_app():
         st.markdown("---")
         st.subheader("Features")
         feature = st.radio("Select Feature", 
-            ["📤 Upload Document", "📝 Summarize", "📋 Generate Notes", "📧 Generate Email", "❓ Q&A", "📚 History"])
+            ["📤 Upload Document", "📝 Summarize", "📋 Generate Notes", "❓ Q&A", "📚 History"])
     
     # Main content
     if feature == "📤 Upload Document":
@@ -214,26 +214,6 @@ def main_app():
                     st.write(notes)
                     
                     st.download_button("⬇️ Download Notes", notes, "notes.txt")
-                except Exception as e:
-                    st.error(f"Error: {str(e)}")
-        else:
-            st.error("❌ Please upload a document first in 'Upload Document' section")
-    
-    elif feature == "📧 Generate Email":
-        st.markdown('<h2 class="section-title">📧 Generate Email</h2>', unsafe_allow_html=True)
-        
-        if st.session_state.current_doc:
-            st.info(f"📄 Current Document: {st.session_state.current_doc['name']}")
-            email_type = st.selectbox("Email Type", ["Summary", "Follow-up", "Action Items"])
-            
-            if st.button("✨ Generate Email"):
-                try:
-                    generator = AIGenerator()
-                    email = generator.generate_email(st.session_state.current_doc["text"], email_type)
-                    st.subheader("Generated Email")
-                    st.write(email)
-                    
-                    st.download_button("⬇️ Download Email", email, "email.txt")
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
         else:
