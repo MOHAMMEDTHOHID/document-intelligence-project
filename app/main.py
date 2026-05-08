@@ -20,6 +20,8 @@ if "documents" not in st.session_state:
     st.session_state.documents = []
 if "current_doc" not in st.session_state:
     st.session_state.current_doc = None
+if "show_signup" not in st.session_state:
+    st.session_state.show_signup = False
 
 # Load custom CSS
 st.markdown("""
@@ -31,56 +33,87 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 def login_page():
-    """Login/Signup page"""
+    """Login page"""
     st.markdown('<h1 class="main-title">🔐 Document Intelligence Platform</h1>', unsafe_allow_html=True)
     st.markdown('<h3 style="color: #666;">📚 Intelligent Document Analysis with AI</h3>', unsafe_allow_html=True)
     
     st.markdown("---")
-    st.info("🔑 **Login or create an account to get started**\n\n1️⃣ Sign up or login\n2️⃣ Upload a document\n3️⃣ Use AI features")
-    st.markdown("---")
     
-    col1, col2 = st.columns(2)
+    # Show Login or Signup based on session state
+    if not st.session_state.show_signup:
+        # LOGIN PAGE
+        st.markdown("### 🔑 Login to Your Account")
+        st.info("📌 Enter your credentials to access your documents and AI features")
+        
+        st.markdown("")
+        col1, col2, col3 = st.columns([1, 2, 1])
+        
+        with col2:
+            email = st.text_input("Email", key="login_email", placeholder="your@email.com")
+            password = st.text_input("Password", type="password", key="login_password", placeholder="••••••••")
+            
+            st.markdown("")
+            
+            if st.button("🚀 Login", use_container_width=True):
+                if not email or not password:
+                    st.error("❌ Please enter email and password")
+                else:
+                    try:
+                        response = requests.post(f"{API_URL}/login", json={"email": email, "password": password})
+                        if response.status_code == 200:
+                            st.session_state.user = response.json()
+                            st.success("✅ Login successful!")
+                            st.rerun()
+                        else:
+                            st.error("❌ Invalid credentials")
+                    except Exception as e:
+                        st.error(f"❌ Error: {str(e)}")
+            
+            st.markdown("---")
+            
+            if st.button("📝 Create New Account", use_container_width=True):
+                st.session_state.show_signup = True
+                st.rerun()
     
-    with col1:
-        st.subheader("🔑 Login")
-        email = st.text_input("Email", key="login_email", placeholder="your@email.com")
-        password = st.text_input("Password", type="password", key="login_password", placeholder="••••••••")
-        if st.button("🚀 Login", use_container_width=True):
-            if not email or not password:
-                st.error("❌ Please enter email and password")
-            else:
-                try:
-                    response = requests.post(f"{API_URL}/login", json={"email": email, "password": password})
-                    if response.status_code == 200:
-                        st.session_state.user = response.json()
-                        st.success("✅ Login successful!")
-                        st.rerun()
-                    else:
-                        st.error("❌ Invalid credentials")
-                except Exception as e:
-                    st.error(f"❌ Error: {str(e)}")
-    
-    with col2:
-        st.subheader("📝 Sign Up")
-        new_email = st.text_input("Email", key="signup_email", placeholder="your@email.com")
-        new_password = st.text_input("Password", type="password", key="signup_password", placeholder="••••••••")
-        confirm_password = st.text_input("Confirm Password", type="password", key="confirm_password", placeholder="••••••••")
-        if st.button("✍️ Create Account", use_container_width=True):
-            if not new_email or not new_password:
-                st.error("❌ Please fill in all fields")
-            elif new_password != confirm_password:
-                st.error("❌ Passwords don't match!")
-            elif len(new_password) < 6:
-                st.error("❌ Password must be at least 6 characters")
-            else:
-                try:
-                    response = requests.post(f"{API_URL}/signup", json={"email": new_email, "password": new_password})
-                    if response.status_code == 200:
-                        st.success("✅ Signup successful! Please login with your credentials.")
-                    else:
-                        st.error("❌ Signup failed - Email might already exist")
-                except Exception as e:
-                    st.error(f"❌ Error: {str(e)}")
+    else:
+        # SIGNUP PAGE
+        st.markdown("### 📝 Create New Account")
+        st.info("✨ Sign up to start using Document Intelligence Platform")
+        
+        st.markdown("")
+        col1, col2, col3 = st.columns([1, 2, 1])
+        
+        with col2:
+            new_email = st.text_input("Email", key="signup_email", placeholder="your@email.com")
+            new_password = st.text_input("Password", type="password", key="signup_password", placeholder="••••••••")
+            confirm_password = st.text_input("Confirm Password", type="password", key="confirm_password", placeholder="••••••••")
+            
+            st.markdown("")
+            
+            if st.button("✍️ Create Account", use_container_width=True):
+                if not new_email or not new_password:
+                    st.error("❌ Please fill in all fields")
+                elif new_password != confirm_password:
+                    st.error("❌ Passwords don't match!")
+                elif len(new_password) < 6:
+                    st.error("❌ Password must be at least 6 characters")
+                else:
+                    try:
+                        response = requests.post(f"{API_URL}/signup", json={"email": new_email, "password": new_password})
+                        if response.status_code == 200:
+                            st.success("✅ Signup successful! Redirecting to login...")
+                            st.session_state.show_signup = False
+                            st.rerun()
+                        else:
+                            st.error("❌ Signup failed - Email might already exist")
+                    except Exception as e:
+                        st.error(f"❌ Error: {str(e)}")
+            
+            st.markdown("---")
+            
+            if st.button("🔙 Back to Login", use_container_width=True):
+                st.session_state.show_signup = False
+                st.rerun()
 
 def main_app():
     """Main application page"""
@@ -99,6 +132,7 @@ def main_app():
         st.subheader(f"👤 {st.session_state.user['email']}")
         if st.button("🚪 Logout"):
             st.session_state.user = None
+            st.session_state.show_signup = False
             st.rerun()
         
         st.markdown("---")
