@@ -146,7 +146,7 @@ def main_app():
         st.markdown("---")
         st.subheader("Features")
         feature = st.radio("Select Feature", 
-            ["📤 Upload Document", "📝 Summarize", "📋 Generate Notes", "❓ Q&A", "📚 History"])
+            ["📤 Upload Document", "📝 Summarize", "📋 Generate Notes", "📧 Generate Email", "❓ Q&A", "📚 History"])
     
     # Main content
     if feature == "📤 Upload Document":
@@ -237,7 +237,35 @@ def main_app():
         else:
             st.error("❌ Please upload a document first in 'Upload Document' section")
     
-    elif feature == "📚 History":
+    elif feature == "� Generate Email":
+        st.markdown('<h2 class="section-title">📧 Generate Email</h2>', unsafe_allow_html=True)
+        
+        if st.session_state.current_doc:
+            st.info(f"📄 Current Document: {st.session_state.current_doc['name']}")
+            
+            email_type = st.selectbox("Select Email Type", 
+                ["Summary", "Follow-up", "Action Items"], 
+                help="Choose the type of email to generate")
+            
+            if st.button("✨ Generate Email"):
+                try:
+                    generator = AIGenerator()
+                    email_type_map = {
+                        "Summary": "summary",
+                        "Follow-up": "follow-up",
+                        "Action Items": "action_items"
+                    }
+                    email = generator.generate_email(st.session_state.current_doc["text"], email_type_map[email_type])
+                    st.subheader("Generated Email")
+                    st.text_area("Email Content", email, height=300, disabled=True)
+                    
+                    st.download_button("⬇️ Download Email", email, "email.txt")
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+        else:
+            st.error("❌ Please upload a document first in 'Upload Document' section")
+    
+    elif feature == "�📚 History":
         st.markdown('<h2 class="section-title">📚 History</h2>', unsafe_allow_html=True)
         
         try:
